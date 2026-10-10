@@ -1,6 +1,6 @@
 """Tests for the crypto module."""
 
-from sheff.crypto import (
+from cryptx.crypto import (
     caesar_encrypt, caesar_decrypt, caesar_bruteforce,
     rot13, rot47,
     xor_encrypt, xor_decrypt_hex,

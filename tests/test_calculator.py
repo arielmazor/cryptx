@@ -1,7 +1,7 @@
 """Tests for the calculator module."""
 
 import pytest
-from sheff.calculator import safe_eval, calculate, format_result
+from cryptx.calculator import safe_eval, calculate, format_result
 
 
 def test_basic_arithmetic():
@@ -59,6 +59,17 @@ def test_complex_expression():
 def test_unary_minus():
     assert safe_eval("-5") == -5
     assert safe_eval("-0xff") == -255
+
+
+def test_context_variables():
+    ctx = {"ans": 256, "x": 10}
+    assert safe_eval("ans >> 4", ctx) == 16
+    assert safe_eval("ans + x", ctx) == 266
+
+
+def test_unknown_variable():
+    with pytest.raises(ValueError, match="Unknown variable: 'foobar'"):
+        safe_eval("foobar + 1", {})
 
 
 def test_format_result_integer():

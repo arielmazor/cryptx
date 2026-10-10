@@ -1,15 +1,16 @@
-"""Sheff CLI — The Swiss Army Knife for encoding, crypto & hacking in your terminal.
+"""cryptx CLI — The Swiss Army Knife for encoding, crypto & hacking in your terminal.
 
 Usage examples:
-    sheff encode base64 "Hello, World!"
-    sheff decode hex "48656c6c6f"
-    sheff crypto rot13 "Uryyb"
-    sheff hash sha256 "password"
-    sheff pack p32 0xdeadbeef
-    sheff unpack u32 efbeadde
-    sheff calc "0xff & 0b11110000"
-    sheff analyze "Hello"
-    echo "secret" | sheff encode base64
+    cryptx encode base64 "Hello, World!"
+    cryptx decode hex "48656c6c6f"
+    cryptx crypto rot13 "Uryyb"
+    cryptx hash sha256 "password"
+    cryptx pack p32 0xdeadbeef
+    cryptx unpack u32 efbeadde
+    cryptx calc "0xff & 0b11110000"
+    cryptx calc                          # opens interactive TUI
+    cryptx analyze "Hello"
+    echo "secret" | cryptx encode base64
 """
 
 import sys
@@ -17,7 +18,7 @@ import sys
 import click
 
 from . import __version__
-from .calculator import calculate
+from .calculator import calculate, calc_repl
 from .crypto import (
     atbash,
     caesar_bruteforce,
@@ -52,14 +53,14 @@ def _styled(label: str, value: str) -> str:
 # ─── Root ────────────────────────────────────────────────────────────────────
 
 @click.group(invoke_without_command=True)
-@click.version_option(__version__, prog_name="sheff")
+@click.version_option(__version__, prog_name="cryptx")
 @click.pass_context
 def cli(ctx: click.Context) -> None:
-    """Sheff — offline encoding, decoding, crypto, hashing, packing & calculator.
+    """cryptx — offline encoding, decoding, crypto, hashing, packing & calculator.
 
     \b
     Like CyberChef, but lives in your terminal and works offline.
-    Run `sheff <command> --help` for details on any command.
+    Run `cryptx <command> --help` for details on any command.
     """
     if ctx.invoked_subcommand is None:
         click.echo(ctx.get_help())
@@ -80,9 +81,9 @@ def encode(format: str, text: str | None) -> None:
 
     \b
     Examples:
-      sheff encode base64 "Hello, World!"
-      sheff encode hex "secret"
-      echo "pipe me" | sheff encode url
+      cryptx encode base64 "Hello, World!"
+      cryptx encode hex "secret"
+      echo "pipe me" | cryptx encode url
     """
     data = get_input(text)
     encoder, _ = ENCODINGS[format.lower()]
@@ -104,8 +105,8 @@ def decode(format: str, text: str | None) -> None:
 
     \b
     Examples:
-      sheff decode base64 "SGVsbG8sIFdvcmxkIQ=="
-      sheff decode hex "48656c6c6f"
+      cryptx decode base64 "SGVsbG8sIFdvcmxkIQ=="
+      cryptx decode hex "48656c6c6f"
     """
     data = get_input(text)
     _, decoder = ENCODINGS[format.lower()]
@@ -133,9 +134,9 @@ def caesar(text: str | None, shift: int, decrypt: bool, bruteforce: bool) -> Non
 
     \b
     Examples:
-      sheff crypto caesar "Hello"
-      sheff crypto caesar "Khoor" -d -s 3
-      sheff crypto caesar "Khoor" --bruteforce
+      cryptx crypto caesar "Hello"
+      cryptx crypto caesar "Khoor" -d -s 3
+      cryptx crypto caesar "Khoor" --bruteforce
     """
     data = get_input(text)
     if bruteforce:
@@ -155,7 +156,7 @@ def rot13_cmd(text: str | None) -> None:
     """ROT13 cipher (symmetric).
 
     \b
-    Example:  sheff crypto rot13 "Hello, World!"
+    Example:  cryptx crypto rot13 "Hello, World!"
     """
     click.echo(rot13(get_input(text)))
 
@@ -166,7 +167,7 @@ def rot47_cmd(text: str | None) -> None:
     """ROT47 cipher — rotates all printable ASCII (symmetric).
 
     \b
-    Example:  sheff crypto rot47 "Hello, World!"
+    Example:  cryptx crypto rot47 "Hello, World!"
     """
     click.echo(rot47(get_input(text)))
 
@@ -183,8 +184,8 @@ def xor(text: str | None, key: str, decrypt: bool) -> None:
 
     \b
     Examples:
-      sheff crypto xor "Hello" -k "secret"
-      sheff crypto xor "3b0a041a01" -k "secret" -d
+      cryptx crypto xor "Hello" -k "secret"
+      cryptx crypto xor "3b0a041a01" -k "secret" -d
     """
     data = get_input(text)
     if decrypt:
@@ -202,7 +203,7 @@ def xor_bf(hex_data: str | None) -> None:
     Input must be a hex string.
 
     \b
-    Example:  sheff crypto xor-bruteforce "3b0a041a01"
+    Example:  cryptx crypto xor-bruteforce "3b0a041a01"
     """
     data = get_input(hex_data)
     results = xor_single_byte_bruteforce(data)
@@ -223,8 +224,8 @@ def vigenere(text: str | None, key: str, decrypt: bool) -> None:
 
     \b
     Examples:
-      sheff crypto vigenere "Hello" -k SECRET
-      sheff crypto vigenere "Zincs" -k SECRET -d
+      cryptx crypto vigenere "Hello" -k SECRET
+      cryptx crypto vigenere "Zincs" -k SECRET -d
     """
     data = get_input(text)
     if decrypt:
@@ -239,7 +240,7 @@ def atbash_cmd(text: str | None) -> None:
     """Atbash cipher — mirror the alphabet (symmetric).
 
     \b
-    Example:  sheff crypto atbash "Hello"
+    Example:  cryptx crypto atbash "Hello"
     """
     click.echo(atbash(get_input(text)))
 
@@ -257,9 +258,9 @@ def hash_cmd(algorithm: str, text: str | None) -> None:
 
     \b
     Examples:
-      sheff hash sha256 "password"
-      sheff hash all "Hello"
-      echo -n "data" | sheff hash md5
+      cryptx hash sha256 "password"
+      cryptx hash all "Hello"
+      echo -n "data" | cryptx hash md5
     """
     data = get_input(text)
     if algorithm.lower() == "all":
@@ -284,9 +285,9 @@ def pack(width: str, value: str, big_endian: bool) -> None:
 
     \b
     Examples:
-      sheff pack p32 0xdeadbeef
-      sheff pack p64 255
-      sheff pack p16 0xcafe --big-endian
+      cryptx pack p32 0xdeadbeef
+      cryptx pack p64 255
+      cryptx pack p16 0xcafe --big-endian
     """
     n = parse_int(value)
     pack_funcs = {"p8": p8, "p16": p16, "p32": p32, "p64": p64}
@@ -312,9 +313,9 @@ def unpack(width: str, hex_data: str, big_endian: bool) -> None:
 
     \b
     Examples:
-      sheff unpack u32 efbeadde
-      sheff unpack u64 efbeaddeefbeadde
-      sheff unpack u16 cafe --big-endian
+      cryptx unpack u32 efbeadde
+      cryptx unpack u64 efbeaddeefbeadde
+      cryptx unpack u16 cafe --big-endian
     """
     unpack_funcs = {"u8": u8, "u16": u16, "u32": u32, "u64": u64}
     func = unpack_funcs[width.lower()]
@@ -328,9 +329,13 @@ def unpack(width: str, hex_data: str, big_endian: bool) -> None:
 # ─── Calc ────────────────────────────────────────────────────────────────────
 
 @cli.command()
-@click.argument("expression")
-def calc(expression: str) -> None:
+@click.argument("expression", required=False)
+def calc(expression: str | None) -> None:
     """Multi-base calculator with bitwise operations.
+
+    \b
+    Run without arguments to open the interactive TUI calculator.
+    Pass an expression for a one-shot evaluation.
 
     \b
     Accepts integers in decimal, hex (0x), octal (0o), binary (0b).
@@ -342,17 +347,20 @@ def calc(expression: str) -> None:
 
     \b
     Examples:
-      sheff calc "0xff + 1"
-      sheff calc "0b1111 & 0b1010"
-      sheff calc "255 << 8"
-      sheff calc "~0xff"
-      sheff calc "(0xdead << 16) | 0xbeef"
+      cryptx calc                          # interactive TUI
+      cryptx calc "0xff + 1"
+      cryptx calc "0b1111 & 0b1010"
+      cryptx calc "(0xdead << 16) | 0xbeef"
     """
-    try:
-        _, formatted = calculate(expression)
-        click.echo(formatted)
-    except ValueError as exc:
-        raise SystemExit(f"Error: {exc}") from exc
+    if expression is None:
+        # No expression → launch interactive TUI REPL
+        calc_repl()
+    else:
+        try:
+            _, formatted = calculate(expression)
+            click.echo(formatted)
+        except ValueError as exc:
+            raise SystemExit(f"Error: {exc}") from exc
 
 
 # ─── Analyze ─────────────────────────────────────────────────────────────────
@@ -366,7 +374,7 @@ def analyze(text: str | None) -> None:
     Displays length, entropy, hex dump, all hashes, and more.
 
     \b
-    Example:  sheff analyze "Hello, World!"
+    Example:  cryptx analyze "Hello, World!"
     """
     data = get_input(text)
 

@@ -1,6 +1,6 @@
 """Tests for the hashing module."""
 
-from sheff.hashing import md5, sha1, sha256, sha512, crc32, hash_all
+from cryptx.hashing import md5, sha1, sha256, sha512, crc32, hash_all
 
 
 def test_md5():

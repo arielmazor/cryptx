@@ -1,221 +1,282 @@
-# 🔪 Sheff
+<div align="center">
 
-**The Swiss Army Knife for encoding, decoding, crypto & hacking in your terminal.**
+# ⚡ cryptx
 
-Like CyberChef, but lives in your terminal and works **100% offline**. No more juggling between CyberChef, dcode.fr, pwntools, and random online tools — Sheff puts everything in one place.
+### **The Swiss Army Knife for Encoding, Crypto, Hashing, Packing & Bitwise Math**
+*100% Offline • Zero Telemetry • Instant Terminal Workflow • Unix Pipe-Friendly*
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![Python: 3.10+](https://img.shields.io/badge/Python-3.10+-3776AB.svg?logo=python&logoColor=white)](https://python.org)
+[![Platform: Linux | macOS | Windows](https://img.shields.io/badge/Platform-Linux%20%7C%20macOS%20%7C%20Windows-brightgreen.svg)]()
+[![Offline First](https://img.shields.io/badge/Security-100%25%20Offline-red.svg)]()
 
 ```
-pip install sheff
+pip install cryptx
 ```
+
+</div>
 
 ---
 
-## Features
+## 💡 Why cryptx?
 
-| Category | What you get |
-|---|---|
-| **Encoding** | Base16/Hex, Base32, Base58, Base64, Base85/ASCII85, URL, HTML entities, Binary, Octal, Morse, Decimal |
-| **Crypto** | Caesar (+ bruteforce), ROT13, ROT47, XOR (+ single-byte bruteforce), Vigenère, Atbash |
-| **Hashing** | MD5, SHA-1, SHA-224, SHA-256, SHA-384, SHA-512, CRC32 |
-| **Packing** | pwntools-style p8/p16/p32/p64 and u8/u16/u32/u64 (LE & BE) |
-| **Calculator** | Multi-base (dec/hex/oct/bin) with full bitwise ops: `& \| ^ ~ << >>` |
-| **Analysis** | String info, entropy, hex dump, all hashes + all encodings at once |
+When working on CTFs, exploit development, reverse engineering, or daily security tasks, workflow is constantly fragmented across browser tabs and bloated scripts:
 
-✅ Works completely offline  
-✅ Pipe-friendly (stdin support)  
-✅ Single dependency (`click`)  
-✅ Python 3.10+  
+- Pasting secrets into **CyberChef** or **dcode.fr** risks leaking tokens and requires an internet connection.
+- Booting up **Python** or **pwntools** just to do `p32(0xdeadbeef)` or calculate `(0xdead << 16) | 0xbeef` is slow and repetitive.
+- Checking 5 different hash types requires running 5 different shell utilities.
+
+**cryptx** brings all of these into one unified, blazing-fast, offline terminal interface with an interactive **TUI Calculator**.
 
 ---
 
-## Installation
+## 🗺️ Migration & Replacement Map
+
+Switching from fragmented tools to `cryptx`? Here is your cheat sheet:
+
+| Tool Being Replaced | What You Used To Do | The `cryptx` Way | Why It's Better |
+|---|---|---|---|
+| 🌐 **CyberChef** | Open browser, find `To Base64`, paste data | `cryptx encode base64 "Hello"` | **100% offline**, zero browser lag, shell-native |
+| 🌐 **CyberChef** | Chain `From Hex` + `XOR` recipes | `cryptx crypto xor "3b0a041a01" -k secret -d` | One CLI flag, no recipe drag-and-drop |
+| 🌐 **dcode.fr** | Navigate ads, paste ciphertext for Caesar | `cryptx crypto caesar "Khoor" --bruteforce` | Instant terminal output of all 26 shifts |
+| 🌐 **dcode.fr** | Online Vigenère / Atbash solvers | `cryptx crypto vigenere "ATTACK" -k KEY` | Fast, private, scriptable |
+| 🐍 **pwntools** | `python3 -c "from pwn import *; print(p32(0xdeadbeef))"` | `cryptx pack p32 0xdeadbeef` | No heavy dependencies, shows Hex + C + Python formatting |
+| 🐍 **pwntools** | `python3 -c "from pwn import *; print(hex(u32(bytes.fromhex('...'))))"` | `cryptx unpack u32 efbeadde` | Simultaneous view in Decimal, Hex, Octal, Binary |
+| 🧮 **bc / Python CLI** | `python3 -c "print(hex(0xff & 0x0f))"` | `cryptx calc` *(interactive TUI)* | Multi-base inputs + bitwise ops + variables + 4-base live results |
+| 🔐 **hash utilities** | Running `md5sum`, `sha256sum`, etc. separately | `cryptx hash all "my_string"` | Computes MD5, SHA-1, SHA-224/256/384/512, CRC32 in 1 shot |
+
+---
+
+## 🧮 Interactive TUI Calculator
+
+Launch a persistent, multi-base bitwise REPL by simply running:
 
 ```bash
-# From source
-git clone https://github.com/arielmazor/sheff.git
-cd sheff
-pip install .
-
-# Or install in development mode
-pip install -e .
+cryptx calc
 ```
+
+### Terminal Interface:
+
+```text
+┌──────────────────────────────────────────────────────────┐
+│                   cryptx  calculator                     │
+├──────────────────────────────────────────────────────────┤
+│  Operators   +  -  *  /  //  %  **                       │
+│  Bitwise     &  |  ^  ~  <<  >>                          │
+│  Bases       0xff (hex)  0b11 (bin)  0o77 (oct)          │
+│  Variables   ans = last result  ·  x = <expr>            │
+│  Commands    help · vars · clear · quit                  │
+└──────────────────────────────────────────────────────────┘
+» (0xdead << 16) | 0xbeef
+  Dec:  3735928559
+  Hex:  0xdeadbeef
+  Oct:  0o33653337357
+  Bin:  0b11011110101011011011111011101111
+
+» mask = 0b11110000
+  Dec:  240
+  Hex:  0xf0
+  Oct:  0o360
+  Bin:  0b11110000
+
+» ans & 0xff
+  Dec:  240
+  Hex:  0xf0
+  Oct:  0o360
+  Bin:  0b11110000
+
+» quit
+```
+
+> **Need a one-liner for a shell script?**  
+> `cryptx calc "0xff & 0b11110000"` evaluates and exits directly.
 
 ---
 
-## Usage
+## 🚀 Feature Tour & Examples
 
-### Encode & Decode
+### 1. Encodings & Decodings
+Supports **Base16/Hex**, **Base32**, **Base58 (Bitcoin)**, **Base64**, **Base85/ASCII85**, **URL**, **HTML Entities**, **Binary**, **Octal**, **Morse Code**, and **Decimal ASCII**.
 
 ```bash
-sheff encode base64 "Hello, World!"
+# Base64
+cryptx encode base64 "Hello, World!"
 # SGVsbG8sIFdvcmxkIQ==
 
-sheff decode base64 "SGVsbG8sIFdvcmxkIQ=="
+cryptx decode base64 "SGVsbG8sIFdvcmxkIQ=="
 # Hello, World!
 
-sheff encode hex "secret"
-# 736563726574
+# Hex
+cryptx encode hex "flag{offline_tool}"
+cryptx decode hex "666c6167"
 
-sheff decode hex "736563726574"
-# secret
+# Base58 (Crypto addresses)
+cryptx encode base58 "Satoshi"
 
-sheff encode url "hello world & more"
-# hello%20world%20%26%20more
+# URL & HTML
+cryptx encode url "admin=true&role=root"
+cryptx decode html "&lt;svg onload=alert(1)&gt;"
 
-sheff encode binary "Hi"
-# 01001000 01101001
-
-sheff encode morse "SOS"
+# Morse & Binary
+cryptx encode morse "SOS"
 # ... --- ...
-
-# All formats: base16/hex, base32, base58, base64/b64,
-#              base85/ascii85, url, html, binary/bin,
-#              octal/oct, morse, decimal/dec
+cryptx encode binary "CTF"
+# 01000011 01010100 01000110
 ```
 
-### Crypto
+---
+
+### 2. Classical Ciphers & XOR
+Cryptographic transformations with cracking utilities:
 
 ```bash
-sheff crypto rot13 "Hello, World!"
-# Uryyb, Jbeyq!
+# Caesar with bruteforce (tries all 26 shifts)
+cryptx crypto caesar "Khoor" --bruteforce
 
-sheff crypto rot47 "Hello!"
-# w6==@P
+# ROT13 and ROT47
+cryptx crypto rot13 "Uryyb, Jbeyq!"
+cryptx crypto rot47 "w6==@"
 
-sheff crypto caesar "Hello" --shift 7
-# Olssv
+# XOR encryption / decryption
+cryptx crypto xor "secret message" --key "mykey"
+cryptx crypto xor "1e160e1707" --key "mykey" --decrypt
 
-sheff crypto caesar "Khoor" --bruteforce
-# [shift  0]  Khoor
-# [shift  1]  Jgnnq
-# [shift  2]  Ifmmp
-# [shift  3]  Hello    ← found it!
-# ...
+# Single-byte XOR bruteforce (auto-filters printable plaintexts)
+cryptx crypto xor-bruteforce "1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736"
 
-sheff crypto xor "Hello" --key "secret"
-# 3b0a041a01
+# Vigenère Cipher
+cryptx crypto vigenere "ATTACKATDAWN" --key "LEMON"
+cryptx crypto vigenere "LXFOPVEFRNHR" --key "LEMON" --decrypt
 
-sheff crypto xor "3b0a041a01" --key "secret" --decrypt
-# Hello
-
-sheff crypto vigenere "ATTACKATDAWN" --key LEMON
-# LXFOPVEFRNHR
-
-sheff crypto atbash "Hello"
-# Svool
+# Atbash Cipher
+cryptx crypto atbash "Hello"
 ```
 
-### Hashing
+---
+
+### 3. Hashes & Checksums
+Generate digests quickly or inspect all algorithms simultaneously:
 
 ```bash
-sheff hash sha256 "password"
-# 5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8
+# Single hash
+cryptx hash sha256 "password123"
+cryptx hash md5 "admin"
+cryptx hash crc32 "data"
 
-sheff hash md5 "Hello"
-# 8b1a9953c4611296a827abf8c47804d7
-
-sheff hash all "test"
-#      MD5:  098f6bcd4621d373cade4e832627b4f6
-#     SHA1:  a94a8fe5ccb19ba61c4c0873d391e987982fbbd3
-#   SHA224:  90a3ed9e32b2aaf4c61c410eb925426119e1a9dc53d4286ade99a809
-#   SHA256:  9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08
-#   SHA384:  ...
-#   SHA512:  ...
-#    CRC32:  d87f7e0c
+# All hashes at once
+cryptx hash all "Hello"
+#      MD5:  8b1a9953c4611296a827abf8c47804d7
+#     SHA1:  f7ff9e8b7bb2e09b70935a5d785e0cc5d9d0abf0
+#   SHA224:  70c57ff9e42e4726bfcfbc122cdcf8c51f49fa46811a2f9ffbd7be0a
+#   SHA256:  185f8db32271fe25f561a6fc938b2e264306ec304eda518007d1764826381969
+#   SHA384:  3519c72c12f7e0a2b165a17922b4136dd5496a566cb347d5dae0cbede9dc0d52dced7...
+#   SHA512:  361524111393430030def9840eb5b97d87b3bf914c63200c489ca22c...
+#    CRC32:  f7d18982
 ```
 
-### Packing (pwntools-style)
+---
+
+### 4. Binary Packing & Unpacking (pwntools replacement)
+Pack integer words into bytes, or inspect raw hex buffers in both little-endian and big-endian order:
 
 ```bash
-sheff pack p32 0xdeadbeef
+# Pack integer to byte string (LE default, or --big-endian)
+cryptx pack p32 0xdeadbeef
 # Hex:    efbeadde
 # Bytes:  ef be ad de
 # Python: b'\xef\xbe\xad\xde'
 # C:      {0xef, 0xbe, 0xad, 0xde}
 
-sheff pack p64 0xcafebabe
-sheff pack p16 0x1337 --big-endian
+cryptx pack p64 0x401156
+cryptx pack p16 0x1337 --big-endian
 
-sheff unpack u32 efbeadde
+# Unpack bytes to integer
+cryptx unpack u32 efbeadde
 # Dec:  3735928559
 # Hex:  0xdeadbeef
 # Oct:  0o33653337357
 # Bin:  0b11011110101011011011111011101111
 ```
 
-### Calculator
+---
 
-Supports **decimal, hex (0x), octal (0o), binary (0b)** input and outputs in **all bases**.  
-Full arithmetic and bitwise operations.
-
-```bash
-sheff calc "0xff + 1"
-# Dec:  256
-# Hex:  0x100
-# Oct:  0o400
-# Bin:  0b100000000
-
-sheff calc "0b1111 & 0b1010"
-# Dec:  10
-# Hex:  0xa
-# Oct:  0o12
-# Bin:  0b1010
-
-sheff calc "(0xdead << 16) | 0xbeef"
-# Dec:  3735928559
-# Hex:  0xdeadbeef
-# Oct:  0o33653337357
-# Bin:  0b11011110101011011011111011101111
-
-sheff calc "255 >> 4"
-sheff calc "~0xff"
-sheff calc "2 ** 32 - 1"
-```
-
-### Analyze
-
-Get **everything** about a string at once — length, entropy, hex, all hashes, all encodings:
+### 5. String & Payload Analysis
+Get instant insight into payload length, Shannon entropy, byte representation, and encodings:
 
 ```bash
-sheff analyze "Hello"
-```
-
-### Piping
-
-Everything supports stdin, so you can pipe data through:
-
-```bash
-echo "Hello" | sheff encode base64
-echo "SGVsbG8K" | sheff decode base64
-cat file.txt | sheff hash sha256
-echo "secret" | sheff encode hex
+cryptx analyze "super_secret_payload"
 ```
 
 ---
 
-## All Commands
+## 🔗 Unix Piping & Shell Scripting
 
-```
-sheff encode <format> <text>    Encode data
-sheff decode <format> <text>    Decode data
-sheff crypto caesar <text>      Caesar cipher (--shift, --bruteforce, --decrypt)
-sheff crypto rot13 <text>       ROT13
-sheff crypto rot47 <text>       ROT47
-sheff crypto xor <text>         XOR encrypt/decrypt (--key, --decrypt)
-sheff crypto xor-bruteforce     Single-byte XOR bruteforce
-sheff crypto vigenere <text>    Vigenère cipher (--key, --decrypt)
-sheff crypto atbash <text>      Atbash cipher
-sheff hash <algo> <text>        Hash data (md5, sha256, all, ...)
-sheff pack <width> <value>      Pack integer (p8, p16, p32, p64)
-sheff unpack <width> <hex>      Unpack bytes (u8, u16, u32, u64)
-sheff calc "<expression>"       Multi-base calculator
-sheff analyze <text>            Full analysis of input
-```
+`cryptx` automatically detects whether data is passed as a positional CLI argument or piped through `stdin`:
 
-Run `sheff <command> --help` for detailed usage of any command.
+```bash
+# Pipe from curl or file
+curl -s https://example.com | cryptx hash sha256
+
+# Chain cryptx operations
+echo "my_token" | cryptx encode base64 | cryptx hash md5
+
+# Extract and decode hex strings
+cat memory_dump.txt | grep -oE '[0-9a-fA-F]{8,}' | cryptx unpack u32 -
+```
 
 ---
 
-## License
+## 📦 Installation
 
-MIT — See [LICENSE](LICENSE) for details.
+### From Source
+
+```bash
+git clone https://github.com/arielmazor/cryptx.git
+cd cryptx
+pip install .
+```
+
+### Development Mode
+
+```bash
+git clone https://github.com/arielmazor/cryptx.git
+cd cryptx
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -e .
+pytest -v
+```
+
+---
+
+## 📋 Command Quick Reference
+
+```
+cryptx encode <format> [text]       Encode text into chosen format
+cryptx decode <format> [text]       Decode formatted text to raw string
+cryptx crypto caesar [text]         Caesar shift cipher (-s, -d, -b)
+cryptx crypto rot13 [text]          ROT13 cipher (symmetric)
+cryptx crypto rot47 [text]          ROT47 printable ASCII cipher
+cryptx crypto xor [text]            XOR with repeating key (-k, -d)
+cryptx crypto xor-bruteforce [hex]  Bruteforce 1-byte XOR key
+cryptx crypto vigenere [text]       Vigenère polyalphabetic cipher (-k, -d)
+cryptx crypto atbash [text]         Atbash mirror cipher
+cryptx hash <algo> [text]           Compute cryptographic hash or 'all'
+cryptx pack <p8|p16|p32|p64> <val>  Pack integer into bytes
+cryptx unpack <u8|u16|u32|u64> <hex>Unpack bytes into integer
+cryptx calc [expression]            Multi-base bitwise calculator (or TUI REPL)
+cryptx analyze [text]               String stats, entropy, hashes & encodings
+```
+
+---
+
+## 👤 Author
+
+Developed by **Ariel Mazor**  
+GitHub: [@arielmazor](https://github.com/arielmazor)
+
+---
+
+## 📄 License
+
+This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.

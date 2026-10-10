@@ -1,6 +1,6 @@
 """Tests for the encoding module."""
 
-from sheff.encoding import (
+from cryptx.encoding import (
     base16_encode, base16_decode,
     base32_encode, base32_decode,
     base58_encode, base58_decode,

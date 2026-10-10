@@ -1,6 +1,6 @@
 """Tests for the packing module."""
 
-from sheff.packing import p8, p16, p32, p64, u8, u16, u32, u64
+from cryptx.packing import p8, p16, p32, p64, u8, u16, u32, u64
 
 
 def test_p8():

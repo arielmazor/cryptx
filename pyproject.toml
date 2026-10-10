@@ -3,7 +3,7 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "sheff"
+name = "cryptx"
 version = "1.0.0"
 description = "The Swiss Army Knife for encoding, decoding, crypto & hacking in your terminal. Offline CyberChef alternative."
 readme = "README.md"
@@ -12,7 +12,7 @@ requires-python = ">=3.10"
 authors = [
     {name = "Ariel Mazor"},
 ]
-keywords = ["encoding", "decoding", "crypto", "ctf", "pwntools", "base64", "hashing", "calculator", "cybersecurity"]
+keywords = ["encoding", "decoding", "crypto", "ctf", "pwntools", "base64", "hashing", "calculator", "cybersecurity", "cyberchef"]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Environment :: Console",
@@ -34,9 +34,9 @@ dependencies = [
 ]
 
 [project.scripts]
-sheff = "sheff.cli:cli"
+cryptx = "cryptx.cli:cli"
 
 [project.urls]
-Homepage = "https://github.com/arielmazor/sheff"
-Repository = "https://github.com/arielmazor/sheff"
-Issues = "https://github.com/arielmazor/sheff/issues"
+Homepage = "https://github.com/arielmazor/cryptx"
+Repository = "https://github.com/arielmazor/cryptx"
+Issues = "https://github.com/arielmazor/cryptx/issues"
