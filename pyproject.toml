@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sheff"
+version = "1.0.0"
+description = "The Swiss Army Knife for encoding, decoding, crypto & hacking in your terminal. Offline CyberChef alternative."
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.10"
+authors = [
+    {name = "Ariel Mazor"},
+]
+keywords = ["encoding", "decoding", "crypto", "ctf", "pwntools", "base64", "hashing", "calculator", "cybersecurity"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Information Technology",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Security",
+    "Topic :: Security :: Cryptography",
+    "Topic :: Utilities",
+]
+dependencies = [
+    "click>=8.0",
+]
+
+[project.scripts]
+sheff = "sheff.cli:cli"
+
+[project.urls]
+Homepage = "https://github.com/arielmazor/sheff"
+Repository = "https://github.com/arielmazor/sheff"
+Issues = "https://github.com/arielmazor/sheff/issues"
