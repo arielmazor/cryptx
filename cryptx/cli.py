@@ -50,10 +50,13 @@ def _styled(label: str, value: str) -> str:
     return f"{click.style(label, fg='cyan', bold=True)}  {value}"
 
 
+CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help", "-help"])
+
+
 # ─── Root ────────────────────────────────────────────────────────────────────
 
-@click.group(invoke_without_command=True)
-@click.version_option(__version__, prog_name="cryptx")
+@click.group(context_settings=CONTEXT_SETTINGS, invoke_without_command=True)
+@click.version_option(__version__, "-v", "--version", prog_name="cryptx")
 @click.pass_context
 def cli(ctx: click.Context) -> None:
     """cryptx — offline encoding, decoding, crypto, hashing, packing & calculator.
