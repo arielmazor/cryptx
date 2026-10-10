@@ -10,7 +10,11 @@
 [![Platform: Linux | macOS | Windows](https://img.shields.io/badge/Platform-Linux%20%7C%20macOS%20%7C%20Windows-brightgreen.svg)]()
 [![Offline First](https://img.shields.io/badge/Security-100%25%20Offline-red.svg)]()
 
-```
+```bash
+# Recommended for macOS / Linux CLI tools
+pipx install cryptx
+
+# Or standard pip
 pip install cryptx
 ```
 
@@ -32,18 +36,18 @@ When working on CTFs, exploit development, reverse engineering, or daily securit
 
 ## 🗺️ Migration & Replacement Map
 
-Switching from fragmented tools to `cryptx`? Here is your cheat sheet:
+Replacing your daily tools with `cryptx`:
 
-| Tool Being Replaced | What You Used To Do | The `cryptx` Way | Why It's Better |
-|---|---|---|---|
-| 🌐 **CyberChef** | Open browser, find `To Base64`, paste data | `cryptx encode base64 "Hello"` | **100% offline**, zero browser lag, shell-native |
-| 🌐 **CyberChef** | Chain `From Hex` + `XOR` recipes | `cryptx crypto xor "3b0a041a01" -k secret -d` | One CLI flag, no recipe drag-and-drop |
-| 🌐 **dcode.fr** | Navigate ads, paste ciphertext for Caesar | `cryptx crypto caesar "Khoor" --bruteforce` | Instant terminal output of all 26 shifts |
-| 🌐 **dcode.fr** | Online Vigenère / Atbash solvers | `cryptx crypto vigenere "ATTACK" -k KEY` | Fast, private, scriptable |
-| 🐍 **pwntools** | `python3 -c "from pwn import *; print(p32(0xdeadbeef))"` | `cryptx pack p32 0xdeadbeef` | No heavy dependencies, shows Hex + C + Python formatting |
-| 🐍 **pwntools** | `python3 -c "from pwn import *; print(hex(u32(bytes.fromhex('...'))))"` | `cryptx unpack u32 efbeadde` | Simultaneous view in Decimal, Hex, Octal, Binary |
-| 🧮 **bc / Python CLI** | `python3 -c "print(hex(0xff & 0x0f))"` | `cryptx calc` *(interactive TUI)* | Multi-base inputs + bitwise ops + variables + 4-base live results |
-| 🔐 **hash utilities** | Running `md5sum`, `sha256sum`, etc. separately | `cryptx hash all "my_string"` | Computes MD5, SHA-1, SHA-224/256/384/512, CRC32 in 1 shot |
+| Tool Being Replaced | Previous Workflow | ⚡ The `cryptx` Way |
+|---|---|---|
+| 🌐 **CyberChef** | Open browser, find `To Base64`, paste data | **`cryptx encode base64 "Hello"`** |
+| 🌐 **CyberChef** | Build recipe: `From Hex` ➔ `XOR` | **`cryptx crypto xor "3b0a041a01" -k secret -d`** |
+| 🌐 **dcode.fr** | Open website, paste ciphertext for Caesar | **`cryptx crypto caesar "Khoor" --bruteforce`** |
+| 🌐 **dcode.fr** | Online Vigenère / Atbash solvers | **`cryptx crypto vigenere "ATTACK" -k KEY`** |
+| 🐍 **pwntools** | `python3 -c "from pwn import *; print(p32(0xdeadbeef))"` | **`cryptx pack p32 0xdeadbeef`** |
+| 🐍 **pwntools** | `python3 -c "from pwn import *; print(hex(u32(...)))"` | **`cryptx unpack u32 efbeadde`** |
+| 🧮 **bc / Python REPL** | `python3 -c "print(hex(0xff & 0x0f))"` | **`cryptx calc`** *(Interactive TUI)* |
+| 🔐 **hash utilities** | Run `md5sum`, `sha256sum`, etc. separately | **`cryptx hash all "my_string"`** |
 
 ---
 
@@ -228,12 +232,28 @@ cat memory_dump.txt | grep -oE '[0-9a-fA-F]{8,}' | cryptx unpack u32 -
 
 ## 📦 Installation
 
-### From Source
+### macOS (Recommended: `pipx`)
+On macOS with Homebrew Python (PEP 668), use **`pipx`** to install command-line tools into an isolated environment accessible anywhere:
+
+```bash
+# Install via pipx (recommended for macOS)
+pipx install .
+
+# Or install directly from GitHub
+pipx install git+https://github.com/arielmazor/cryptx.git
+```
+
+> If you don't have `pipx`: `brew install pipx && pipx ensurepath`
+
+### Standard pip (Linux / Windows)
 
 ```bash
 git clone https://github.com/arielmazor/cryptx.git
 cd cryptx
 pip install .
+
+# On macOS without pipx:
+pip3 install --user --break-system-packages .
 ```
 
 ### Development Mode
