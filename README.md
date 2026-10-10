@@ -29,8 +29,9 @@ When working on CTFs, exploit development, reverse engineering, or daily securit
 - Pasting secrets into **CyberChef** or **dcode.fr** risks leaking tokens and requires an internet connection.
 - Booting up **Python** or **pwntools** just to do `p32(0xdeadbeef)` or calculate `(0xdead << 16) | 0xbeef` is slow and repetitive.
 - Checking 5 different hash types requires running 5 different shell utilities.
+- Identifying unknown hashes and looking up Hashcat mode flags requires external web searches.
 
-**cryptx** brings all of these into one unified, blazing-fast, offline terminal interface with an interactive **TUI Calculator**.
+**cryptx** brings all of these into one unified, blazing-fast, offline terminal interface with an interactive **TUI Calculator** and **Offline Rainbow Cracker**.
 
 ---
 
@@ -40,10 +41,13 @@ Replacing your daily tools with `cryptx`:
 
 | Tool Being Replaced | Previous Workflow | ⚡ The `cryptx` Way |
 |---|---|---|
+| 🌐 **CyberChef** | Guess format, find `From Base64` | **`cryptx decode "QXJpZWwgTWF6b3I="`** *(Auto-detect!)* |
 | 🌐 **CyberChef** | Open browser, find `To Base64`, paste data | **`cryptx encode base64 "Hello"`** |
-| 🌐 **CyberChef** | Build recipe: `From Hex` ➔ `XOR` | **`cryptx crypto xor "3b0a041a01" -k secret -d`** |
-| 🌐 **dcode.fr** | Open website, paste ciphertext for Caesar | **`cryptx crypto caesar "Khoor" --bruteforce`** |
-| 🌐 **dcode.fr** | Online Vigenère / Atbash solvers | **`cryptx crypto vigenere "ATTACK" -k KEY`** |
+| 🌐 **CyberChef** | Build recipe: `From Hex` ➔ `XOR` | **`cryptx xor "3b0a041a01" -k secret -d`** |
+| 🌐 **dcode.fr** | Open website, paste ciphertext for Caesar | **`cryptx caesar "Khoor" --bruteforce`** |
+| 🌐 **dcode.fr** | Navigate online cipher tools | **`cryptx rot13 "Uryyb"`** / **`cryptx atbash "Hello"`** |
+| 🔍 **hash-identifier** | Run external python script to inspect hash | **`cryptx crack <hash>`** *(Identifies algorithm & Hashcat mode)* |
+| ⚡ **Hashcat** | Memorize `-m` flags and syntax for rockyou | **`cryptx crack <hash>`** *(Generates exact Hashcat commands)* |
 | 🐍 **pwntools** | `python3 -c "from pwn import *; print(p32(0xdeadbeef))"` | **`cryptx pack p32 0xdeadbeef`** |
 | 🐍 **pwntools** | `python3 -c "from pwn import *; print(hex(u32(...)))"` | **`cryptx unpack u32 efbeadde`** |
 | 🧮 **bc / Python REPL** | `python3 -c "print(hex(0xff & 0x0f))"` | **`cryptx calc`** *(Interactive TUI)* |
@@ -99,88 +103,140 @@ cryptx calc
 
 ## 🚀 Feature Tour & Examples
 
-### 1. Encodings & Decodings
-Supports **Base16/Hex**, **Base32**, **Base58 (Bitcoin)**, **Base64**, **Base85/ASCII85**, **URL**, **HTML Entities**, **Binary**, **Octal**, **Morse Code**, and **Decimal ASCII**.
+### 1. Smart Auto-Decode & Encodings
+Pass encoded data directly — `cryptx decode` automatically identifies the encoding and decodes it without needing you to specify the format:
 
 ```bash
-# Base64
+# Auto-detects Base64 automatically!
+cryptx decode "QXJpZWwgTWF6b3I="
+# Ariel Mazor
+
+# Auto-detects Hex automatically!
+cryptx decode "48656c6c6f"
+# Hello
+
+# Auto-detects from pipes!
+echo "QXJpZWwgTWF6b3I=" | cryptx decode
+# Ariel Mazor
+
+# Or specify format explicitly:
 cryptx encode base64 "Hello, World!"
-# SGVsbG8sIFdvcmxkIQ==
-
 cryptx decode base64 "SGVsbG8sIFdvcmxkIQ=="
-# Hello, World!
 
-# Hex
-cryptx encode hex "flag{offline_tool}"
-cryptx decode hex "666c6167"
-
-# Base58 (Crypto addresses)
-cryptx encode base58 "Satoshi"
-
-# URL & HTML
-cryptx encode url "admin=true&role=root"
-cryptx decode html "&lt;svg onload=alert(1)&gt;"
-
-# Morse & Binary
-cryptx encode morse "SOS"
-# ... --- ...
-cryptx encode binary "CTF"
-# 01000011 01010100 01000110
+# Formats supported:
+# base16/hex, base32, base58, base64/b64, base85/ascii85,
+# url, html, binary/bin, octal/oct, morse, decimal/dec,
+# rot13, rot47, atbash
 ```
 
 ---
 
-### 2. Classical Ciphers & XOR
-Cryptographic transformations with cracking utilities:
+### 2. Hashcat Identifier & Offline Rainbow Table Cracker
+Identify any hash, crack common/CTF hashes instantly **100% offline**, or generate copy-pasteable Hashcat commands:
 
 ```bash
-# Caesar with bruteforce (tries all 26 shifts)
-cryptx crypto caesar "Khoor" --bruteforce
+# Instant offline rainbow cracking:
+cryptx crack 5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8
+```
 
-# ROT13 and ROT47
-cryptx crypto rot13 "Uryyb, Jbeyq!"
-cryptx crypto rot47 "w6==@"
+Output:
+```text
+─── Hash Identification & Cracker ───
+Hash:   5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8
+Length: 64 characters
 
-# XOR encryption / decryption
-cryptx crypto xor "secret message" --key "mykey"
-cryptx crypto xor "1e160e1707" --key "mykey" --decrypt
+[✓] CRACKED (Offline Rainbow Table)!
+Plaintext:     'password'
+Algorithm:     SHA-256
+Hashcat Mode:  -m 1400
+```
 
-# Single-byte XOR bruteforce (auto-filters printable plaintexts)
-cryptx crypto xor-bruteforce "1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736"
+When given an unknown or complex hash:
+```bash
+cryptx crack 1111111111111111111111111111111111111111111111111111111111111111
+```
 
-# Vigenère Cipher
-cryptx crypto vigenere "ATTACKATDAWN" --key "LEMON"
-cryptx crypto vigenere "LXFOPVEFRNHR" --key "LEMON" --decrypt
+Output:
+```text
+─── Hash Identification & Cracker ───
+Hash:   1111111111111111111111111111111111111111111111111111111111111111
+Length: 64 characters
 
-# Atbash Cipher
-cryptx crypto atbash "Hello"
+[-] Not found in built-in offline table.
+
+[!] Likely Hash Candidates:
+    • SHA-256                  (Hashcat: -m 1400) (256-bit)
+    • SHA3-256                 (Hashcat: -m 17400) (256-bit)
+    • BLAKE2b-256              (Hashcat: -m 17700) (256-bit)
+
+[*] Suggested Hashcat Commands:
+    # Dictionary attack:
+    hashcat -m 1400 '1111111...' /usr/share/wordlists/rockyou.txt
+
+    # Brute-force mask attack (8 chars):
+    hashcat -m 1400 -a 3 '1111111...' ?a?a?a?a?a?a?a?a
 ```
 
 ---
 
-### 3. Hashes & Checksums
-Generate digests quickly or inspect all algorithms simultaneously:
+### 3. Classical Ciphers & XOR (Merged Workflow)
+All ciphers can be invoked **directly as top-level commands**, or via `crypto`, or inside `encode`/`decode`:
 
 ```bash
-# Single hash
-cryptx hash sha256 "password123"
-cryptx hash md5 "admin"
-cryptx hash crc32 "data"
+# Top-level direct commands:
+cryptx rot13 "Hello, World!"
+# Uryyb, Jbeyq!
 
-# All hashes at once
-cryptx hash all "Hello"
-#      MD5:  8b1a9953c4611296a827abf8c47804d7
-#     SHA1:  f7ff9e8b7bb2e09b70935a5d785e0cc5d9d0abf0
-#   SHA224:  70c57ff9e42e4726bfcfbc122cdcf8c51f49fa46811a2f9ffbd7be0a
-#   SHA256:  185f8db32271fe25f561a6fc938b2e264306ec304eda518007d1764826381969
-#   SHA384:  3519c72c12f7e0a2b165a17922b4136dd5496a566cb347d5dae0cbede9dc0d52dced7...
-#   SHA512:  361524111393430030def9840eb5b97d87b3bf914c63200c489ca22c...
-#    CRC32:  f7d18982
+cryptx rot47 "Hello!"
+# w6==@P
+
+cryptx caesar "Khoor" --bruteforce
+# [shift  0]  Khoor
+# [shift  1]  Jgnnq
+# [shift  2]  Ifmmp
+# [shift  3]  Hello    ← cracked!
+
+cryptx xor "secret message" --key "mykey"
+cryptx xor "1e160e1707" --key "mykey" --decrypt
+cryptx xor-bruteforce "3b0a041a01"
+
+cryptx vigenere "ATTACKATDAWN" --key "LEMON"
+cryptx atbash "Hello"
+
+# Also available through encode/decode:
+cryptx encode rot13 "Hello"
+cryptx decode rot13 "Uryyb"
 ```
 
 ---
 
-### 4. Binary Packing & Unpacking (pwntools replacement)
+### 4. String & Payload Analysis (Type Detection)
+`cryptx analyze` identifies if a string is Base64, Hex, Binary, JWT, or a Hash, and displays decoded previews:
+
+```bash
+cryptx analyze "QXJpZWwgTWF6b3I="
+```
+
+Output:
+```text
+─── Detected Types ───
+                  Base64 (High):  Ariel Mazor
+
+─── String Info ───
+String:   'QXJpZWwgTWF6b3I='
+Length:   16 chars, 16 bytes
+Entropy:  3.8750 bits/char
+Hex:      51584a705a577767545746366233493d
+
+─── Hashes ───
+     MD5:  5b83984be8bf99f57df520ae1aa3a186
+  SHA256:  fe05183f3286f32e92c10b7db0a0dc23805eb31e03886561f36341490ee53676
+...
+```
+
+---
+
+### 5. Binary Packing & Unpacking (pwntools replacement)
 Pack integer words into bytes, or inspect raw hex buffers in both little-endian and big-endian order:
 
 ```bash
@@ -204,15 +260,6 @@ cryptx unpack u32 efbeadde
 
 ---
 
-### 5. String & Payload Analysis
-Get instant insight into payload length, Shannon entropy, byte representation, and encodings:
-
-```bash
-cryptx analyze "super_secret_payload"
-```
-
----
-
 ## 🔗 Unix Piping & Shell Scripting
 
 `cryptx` automatically detects whether data is passed as a positional CLI argument or piped through `stdin`:
@@ -221,11 +268,11 @@ cryptx analyze "super_secret_payload"
 # Pipe from curl or file
 curl -s https://example.com | cryptx hash sha256
 
-# Chain cryptx operations
-echo "my_token" | cryptx encode base64 | cryptx hash md5
+# Auto-decode from pipe
+echo "QXJpZWwgTWF6b3I=" | cryptx decode
 
-# Extract and decode hex strings
-cat memory_dump.txt | grep -oE '[0-9a-fA-F]{8,}' | cryptx unpack u32 -
+# Pipe hash into cracker
+echo "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8" | cryptx crack
 ```
 
 ---
@@ -275,20 +322,20 @@ pytest -v
 cryptx help [command]               Show global help or command help (also cryptx <command> help)
 cryptx -v / --version               Show current version
 cryptx -h / -help / --help          Show help options
+cryptx decode [format] [text]       Decode data (auto-detects format if omitted!)
 cryptx encode <format> [text]       Encode text into chosen format
-cryptx decode <format> [text]       Decode formatted text to raw string
-cryptx crypto caesar [text]         Caesar shift cipher (-s, -d, -b)
-cryptx crypto rot13 [text]          ROT13 cipher (symmetric)
-cryptx crypto rot47 [text]          ROT47 printable ASCII cipher
-cryptx crypto xor [text]            XOR with repeating key (-k, -d)
-cryptx crypto xor-bruteforce [hex]  Bruteforce 1-byte XOR key
-cryptx crypto vigenere [text]       Vigenère polyalphabetic cipher (-k, -d)
-cryptx crypto atbash [text]         Atbash mirror cipher
+cryptx crack <hash>                 Identify hash & crack with offline rainbow table / Hashcat
+cryptx calc [expression]            Multi-base bitwise calculator (or TUI REPL)
+cryptx analyze [text]               String stats, detected type, entropy & hashes
+cryptx rot13 / rot47 [text]         Direct ROT13/ROT47 cipher
+cryptx caesar [text]                Caesar shift cipher (-s, -d, -b)
+cryptx xor [text]                   XOR with repeating key (-k, -d)
+cryptx xor-bruteforce [hex]         Bruteforce 1-byte XOR key
+cryptx vigenere [text]              Vigenère polyalphabetic cipher (-k, -d)
+cryptx atbash [text]                Atbash mirror cipher
 cryptx hash <algo> [text]           Compute cryptographic hash or 'all'
 cryptx pack <p8|p16|p32|p64> <val>  Pack integer into bytes
 cryptx unpack <u8|u16|u32|u64> <hex>Unpack bytes into integer
-cryptx calc [expression]            Multi-base bitwise calculator (or TUI REPL)
-cryptx analyze [text]               String stats, entropy, hashes & encodings
 ```
 
 ---

@@ -62,3 +62,41 @@ def test_cli_subcommand_flags():
         result = runner.invoke(cli, ["calc", flag], prog_name="cryptx")
         assert result.exit_code == 0
         assert "Multi-base calculator" in result.output
+
+
+def test_cli_decode_auto():
+    runner = CliRunner()
+    result = runner.invoke(cli, ["decode", "QXJpZWwgTWF6b3I="], prog_name="cryptx")
+    assert result.exit_code == 0
+    assert "Ariel Mazor" in result.output
+
+
+def test_cli_direct_ciphers():
+    runner = CliRunner()
+    result = runner.invoke(cli, ["rot13", "Hello"], prog_name="cryptx")
+    assert result.exit_code == 0
+    assert "Uryyb" in result.output
+
+
+def test_cli_crack_rainbow():
+    runner = CliRunner()
+    result = runner.invoke(cli, ["crack", "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8"], prog_name="cryptx")
+    assert result.exit_code == 0
+    assert "CRACKED" in result.output
+    assert "'password'" in result.output
+
+
+def test_cli_crack_unseen_gives_hashcat():
+    runner = CliRunner()
+    result = runner.invoke(cli, ["crack", "1111111111111111111111111111111111111111111111111111111111111111"], prog_name="cryptx")
+    assert result.exit_code == 0
+    assert "hashcat -m 1400" in result.output
+
+
+def test_cli_analyze_shows_detected_type():
+    runner = CliRunner()
+    result = runner.invoke(cli, ["analyze", "QXJpZWwgTWF6b3I="], prog_name="cryptx")
+    assert result.exit_code == 0
+    assert "Detected Types" in result.output
+    assert "Base64" in result.output
+

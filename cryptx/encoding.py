@@ -199,6 +199,11 @@ def decimal_decode(data: str) -> str:
     return bytes(int(d) for d in data.split()).decode()
 
 
+# ─── Classical Ciphers as Encodings ──────────────────────────────────────────
+
+from .crypto import atbash as _atbash, rot13 as _rot13, rot47 as _rot47
+
+
 # ─── Registry ────────────────────────────────────────────────────────────────
 
 ENCODINGS = {
@@ -219,4 +224,7 @@ ENCODINGS = {
     "morse":   (morse_encode,   morse_decode),
     "decimal": (decimal_encode, decimal_decode),
     "dec":     (decimal_encode, decimal_decode),
+    "rot13":   (_rot13,         _rot13),
+    "rot47":   (_rot47,         _rot47),
+    "atbash":  (_atbash,        _atbash),
 }
