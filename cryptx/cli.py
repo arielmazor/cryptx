@@ -53,9 +53,42 @@ def _styled(label: str, value: str) -> str:
 CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help", "-help"])
 
 
+class CryptxCommand(click.Command):
+    """Custom command that intercepts 'help', '-help', '-h', '--help' arguments."""
+
+    def parse_args(self, ctx: click.Context, args: list[str]) -> list[str]:
+        if args and args[0] in ("help", "-help", "-h", "--help"):
+            click.echo(self.get_help(ctx))
+            ctx.exit()
+        return super().parse_args(ctx, args)
+
+
+class CryptxGroup(click.Group):
+    """Custom group that supports 'help', 'help <cmd>', '<cmd> help', '-h', etc."""
+
+    command_class = CryptxCommand
+
+    def group(self, *args, **kwargs):
+        kwargs.setdefault("cls", CryptxGroup)
+        return super().group(*args, **kwargs)
+
+    def parse_args(self, ctx: click.Context, args: list[str]) -> list[str]:
+        if args and args[0] in ("help", "-help", "-h", "--help"):
+            if args[0] == "help" and len(args) > 1:
+                cmd = self.get_command(ctx, args[1])
+                if cmd is not None:
+                    sub_ctx = click.Context(cmd, info_name=args[1], parent=ctx)
+                    click.echo(cmd.get_help(sub_ctx))
+                    ctx.exit()
+            if len(args) == 1:
+                click.echo(self.get_help(ctx))
+                ctx.exit()
+        return super().parse_args(ctx, args)
+
+
 # ─── Root ────────────────────────────────────────────────────────────────────
 
-@click.group(context_settings=CONTEXT_SETTINGS, invoke_without_command=True)
+@click.group(cls=CryptxGroup, context_settings=CONTEXT_SETTINGS, invoke_without_command=True)
 @click.version_option(__version__, "-v", "--version", prog_name="cryptx")
 @click.pass_context
 def cli(ctx: click.Context) -> None:

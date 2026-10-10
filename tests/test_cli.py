@@ -34,8 +34,31 @@ def test_cli_help_short():
     assert "Usage: cryptx" in result.output
 
 
-def test_subcommand_dash_help():
+def test_cli_help_command():
     runner = CliRunner()
-    result = runner.invoke(cli, ["calc", "-help"], prog_name="cryptx")
+    result = runner.invoke(cli, ["help"], prog_name="cryptx")
     assert result.exit_code == 0
-    assert "Multi-base calculator" in result.output
+    assert "Usage: cryptx" in result.output
+
+
+def test_cli_help_subcommand():
+    runner = CliRunner()
+    result = runner.invoke(cli, ["help", "encode"], prog_name="cryptx")
+    assert result.exit_code == 0
+    assert "Usage: cryptx encode" in result.output
+
+
+def test_cli_subcommand_help():
+    runner = CliRunner()
+    for cmd in ["encode", "decode", "crypto", "calc", "hash", "pack", "unpack", "analyze"]:
+        result = runner.invoke(cli, [cmd, "help"], prog_name="cryptx")
+        assert result.exit_code == 0
+        assert f"Usage: cryptx {cmd}" in result.output
+
+
+def test_cli_subcommand_flags():
+    runner = CliRunner()
+    for flag in ["-h", "--help", "-help"]:
+        result = runner.invoke(cli, ["calc", flag], prog_name="cryptx")
+        assert result.exit_code == 0
+        assert "Multi-base calculator" in result.output

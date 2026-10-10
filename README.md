@@ -272,6 +272,9 @@ pytest -v
 ## 📋 Command Quick Reference
 
 ```
+cryptx help [command]               Show global help or command help (also cryptx <command> help)
+cryptx -v / --version               Show current version
+cryptx -h / -help / --help          Show help options
 cryptx encode <format> [text]       Encode text into chosen format
 cryptx decode <format> [text]       Decode formatted text to raw string
 cryptx crypto caesar [text]         Caesar shift cipher (-s, -d, -b)
